@@ -4,12 +4,12 @@ namespace OrderEntryMockingPractice.Models
 {
     public class Order
     {
-        public Order()
+        public Order(List<OrderItem> items)
         {
-            this.OrderItems = new List<OrderItem>();
+            this.OrderItems = items;
         }
         
-        public int? CustomerId { get; set; }
+        public int CustomerId { get; set; }
         public List<OrderItem> OrderItems { get; set; }
     }
 }

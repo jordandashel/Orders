@@ -1,0 +1,7 @@
+C:\git\Orders\OrderEntryMockingPractice\bin\Debug\OrderEntryMockingPractice.dll
+C:\git\Orders\OrderEntryMockingPractice\bin\Debug\OrderEntryMockingPractice.pdb
+C:\git\Orders\OrderEntryMockingPractice\obj\Debug\OrderEntryMockingPractice.csprojResolveAssemblyReference.cache
+C:\git\Orders\OrderEntryMockingPractice\obj\Debug\OrderEntryMockingPractice.dll
+C:\git\Orders\OrderEntryMockingPractice\obj\Debug\OrderEntryMockingPractice.pdb
+C:\git\Orders\OrderEntryMockingPractice\bin\Debug\nunit.framework.dll
+C:\git\Orders\OrderEntryMockingPractice\bin\Debug\nunit.framework.xml
