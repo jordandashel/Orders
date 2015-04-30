@@ -6,11 +6,11 @@ namespace OrderEntryMockingPractice.Services
 {
     public class OrderService
     {
-        private IProductRepository pr;
-        private IOrderFulfillmentService ofs;
-        private ICustomerRepository cr;
-        private ITaxRateService trs;
-        private IEmailService es;
+        private IProductRepository productRepository;
+        private IOrderFulfillmentService orderFulfillmentService;
+        private ICustomerRepository customerRepository;
+        private ITaxRateService taxRateService;
+        private IEmailService emailService;
 
         public OrderService(IProductRepository productRepository, 
             IOrderFulfillmentService orderFulfillmentService,
@@ -18,11 +18,11 @@ namespace OrderEntryMockingPractice.Services
             ITaxRateService taxRateService,
             IEmailService emailService)
         {
-            this.pr = productRepository;
-            this.ofs = orderFulfillmentService;
-            this.cr = customerRepository;
-            this.trs = taxRateService;
-            this.es = emailService;
+            this.productRepository = productRepository;
+            this.orderFulfillmentService = orderFulfillmentService;
+            this.customerRepository = customerRepository;
+            this.taxRateService = taxRateService;
+            this.emailService = emailService;
         }
 
         public OrderSummary PlaceOrder(Order order)
@@ -35,7 +35,7 @@ namespace OrderEntryMockingPractice.Services
             }
             foreach (var orderItem in order.OrderItems)
             {
-                if (!pr.IsInStock(orderItem.Product.Sku))
+                if (!productRepository.IsInStock(orderItem.Product.Sku))
                 {
                     throw new InvalidOperationException("item is out of stock");
                 }
@@ -43,18 +43,18 @@ namespace OrderEntryMockingPractice.Services
 
             OrderSummary orderSummary = new OrderSummary();
 
-            OrderConfirmation confirmation = ofs.Fulfill(order);
+            OrderConfirmation confirmation = orderFulfillmentService.Fulfill(order);
 
             orderSummary.OrderNumber = confirmation.OrderNumber;
             orderSummary.OrderId = confirmation.OrderId;
 
             int customerId = order.CustomerId;
-            Customer customer = cr.Get(customerId);
+            Customer customer = customerRepository.Get(customerId);
 
             var zipCode = customer.PostalCode;
             var country = customer.Country;
 
-            var taxes = trs.GetTaxEntries(zipCode, country);
+            var taxes = taxRateService.GetTaxEntries(zipCode, country);
 
             orderSummary.Taxes = taxes;
 
@@ -63,7 +63,7 @@ namespace OrderEntryMockingPractice.Services
                 orderSummary.NetTotal += item.Product.Price;
             }
 
-            es.SendOrderConfirmationEmail(customerId, confirmation.OrderId);
+            emailService.SendOrderConfirmationEmail(customerId, confirmation.OrderId);
 
             return orderSummary;
         }
