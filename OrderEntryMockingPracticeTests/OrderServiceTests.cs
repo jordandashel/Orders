@@ -17,6 +17,7 @@ namespace OrderEntryMockingPracticeTests
         private IOrderFulfillmentService fakeOrderFulfillmentService;
         private ICustomerRepository fakeCustomerRepository;
         private ITaxRateService fakeTaxRateService;
+        private IEmailService fakeEmailService;
         private Order order;
         private OrderItem orderItem;
 
@@ -27,16 +28,19 @@ namespace OrderEntryMockingPracticeTests
             fakeOrderFulfillmentService = A.Fake<IOrderFulfillmentService>();
             fakeCustomerRepository = A.Fake<ICustomerRepository>();
             fakeTaxRateService = A.Fake<ITaxRateService>();
+            fakeEmailService = A.Fake<IEmailService>();
 
             orderService = new OrderService(fakeProductRepository,
                 fakeOrderFulfillmentService,
                 fakeCustomerRepository,
-                fakeTaxRateService);
+                fakeTaxRateService,
+                fakeEmailService);
 
             orderItem = new OrderItem()
             {
                 Product = new Product()
                 {
+                    Price = 5m,
                     Sku = "5"
                 }
             };
@@ -54,7 +58,8 @@ namespace OrderEntryMockingPracticeTests
             orderService = new OrderService(fakeProductRepository,
                 fakeOrderFulfillmentService,
                 fakeCustomerRepository,
-                fakeTaxRateService);
+                fakeTaxRateService,
+                fakeEmailService);
 
             A.CallTo(() => fakeProductRepository.IsInStock(A<string>.Ignored)).Returns(true);
 
@@ -172,5 +177,22 @@ namespace OrderEntryMockingPracticeTests
 
         }
     
+        [Test]
+        public void NetTotalIsAccurate()
+        {
+            order.OrderItems.Add(new OrderItem() { Product = new Product() { Price = 7m, Sku = "9" } });
+            
+            Assert.That(PlaceValidOrder().NetTotal, Is.EqualTo(12m));
+
+        }
+
+        [Test]
+        public void ConfirmationEmailWasSent()
+        {
+            fakeEmailService = A.Fake<IEmailService>();
+            PlaceValidOrder();
+            A.CallTo(() => fakeEmailService.SendOrderConfirmationEmail(A<int>.Ignored, A<int>.Ignored)).MustHaveHappened(Repeated.Exactly.Once);
+        }
+
     }
 }

@@ -10,16 +10,19 @@ namespace OrderEntryMockingPractice.Services
         private IOrderFulfillmentService ofs;
         private ICustomerRepository cr;
         private ITaxRateService trs;
+        private IEmailService es;
 
         public OrderService(IProductRepository productRepository, 
             IOrderFulfillmentService orderFulfillmentService,
             ICustomerRepository customerRepository,
-            ITaxRateService taxRateService)
+            ITaxRateService taxRateService,
+            IEmailService emailService)
         {
             this.pr = productRepository;
             this.ofs = orderFulfillmentService;
             this.cr = customerRepository;
             this.trs = taxRateService;
+            this.es = emailService;
         }
 
         public OrderSummary PlaceOrder(Order order)
@@ -54,6 +57,13 @@ namespace OrderEntryMockingPractice.Services
             var taxes = trs.GetTaxEntries(zipCode, country);
 
             orderSummary.Taxes = taxes;
+
+            foreach (OrderItem item in order.OrderItems)
+            {
+                orderSummary.NetTotal += item.Product.Price;
+            }
+
+            es.SendOrderConfirmationEmail(customerId, confirmation.OrderId);
 
             return orderSummary;
         }
