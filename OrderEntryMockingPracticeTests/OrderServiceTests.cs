@@ -193,6 +193,5 @@ namespace OrderEntryMockingPracticeTests
             PlaceValidOrder();
             A.CallTo(() => fakeEmailService.SendOrderConfirmationEmail(A<int>.Ignored, A<int>.Ignored)).MustHaveHappened(Repeated.Exactly.Once);
         }
-
     }
 }

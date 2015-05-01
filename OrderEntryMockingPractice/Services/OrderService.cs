@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using OrderEntryMockingPractice.Models;
+using System.Collections.Generic;
 
 namespace OrderEntryMockingPractice.Services
 {
@@ -27,9 +28,29 @@ namespace OrderEntryMockingPractice.Services
 
         public OrderSummary PlaceOrder(Order order)
         {
-            if (order.OrderItems
-                .GroupBy(n => n)
-                .Any(c => c.Count() > 1))
+            validateOrder(order);
+
+            OrderConfirmation confirmation = orderFulfillmentService.Fulfill(order);
+
+            OrderSummary orderSummary = new OrderSummary();
+
+            orderSummary.OrderNumber = confirmation.OrderNumber;
+            orderSummary.OrderId = confirmation.OrderId;
+            
+            Customer customer = customerRepository.Get(order.CustomerId);
+
+            orderSummary.Taxes = getTaxes(customer);
+
+            orderSummary.NetTotal = netTotal(order);
+
+            emailService.SendOrderConfirmationEmail(order.CustomerId, confirmation.OrderId);
+
+            return orderSummary;
+        }
+
+        private void validateOrder(Order order)
+        {
+            if (hasDuplicates(order))
             {
                 throw new InvalidOperationException("Duplicate Items");
             }
@@ -40,32 +61,32 @@ namespace OrderEntryMockingPractice.Services
                     throw new InvalidOperationException("item is out of stock");
                 }
             }
+        }
 
-            OrderSummary orderSummary = new OrderSummary();
-
-            OrderConfirmation confirmation = orderFulfillmentService.Fulfill(order);
-
-            orderSummary.OrderNumber = confirmation.OrderNumber;
-            orderSummary.OrderId = confirmation.OrderId;
-
-            int customerId = order.CustomerId;
-            Customer customer = customerRepository.Get(customerId);
-
+        private IEnumerable<TaxEntry> getTaxes(Customer customer)
+        {
             var zipCode = customer.PostalCode;
             var country = customer.Country;
+            return taxRateService.GetTaxEntries(zipCode, country);
+        }
 
-            var taxes = taxRateService.GetTaxEntries(zipCode, country);
-
-            orderSummary.Taxes = taxes;
+        private static decimal netTotal(Order order)
+        {
+            decimal netTotal = 0;
 
             foreach (OrderItem item in order.OrderItems)
             {
-                orderSummary.NetTotal += item.Product.Price;
+                netTotal += item.Product.Price;
             }
 
-            emailService.SendOrderConfirmationEmail(customerId, confirmation.OrderId);
+            return netTotal;
+        }
 
-            return orderSummary;
+        private static bool hasDuplicates(Order order)
+        {
+            return order.OrderItems
+                            .GroupBy(n => n)
+                            .Any(c => c.Count() > 1);
         }
     }
 }
