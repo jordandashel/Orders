@@ -89,7 +89,6 @@ namespace OrderEntryMockingPracticeTests
             Assert.Throws<InvalidOperationException>(() => this.orderService.PlaceOrder(order));
         }
 
-
         [Test]
         public void NotAllItemsAreInStock()
         {
